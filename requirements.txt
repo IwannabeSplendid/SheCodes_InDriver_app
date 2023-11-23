@@ -8,7 +8,7 @@ asgiref==3.5.2
 astor==0.8.1
 asttokens==2.0.8
 astunparse==1.6.3
-async-lru==2.0.4
+async-lru
 attrs==22.2.0
 Babel==2.11.0
 backcall==0.2.0
