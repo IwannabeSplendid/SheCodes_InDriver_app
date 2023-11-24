@@ -17,7 +17,19 @@ class Settings(BaseSettings):
     DB_HOST: str = os.getenv('DB_HOST')
     DB_PORT: str = os.getenv('DB_PORT')
     DATABASE_URL: str = f"postgresql+psycopg2://{DB_NAME}:%s@{DB_HOST}:{DB_PORT}/{DB_NAME}" % quote_plus(DB_PASSWORD)
-
+    
+    # External Database
+    EX_DB_USERNAME: str = os.getenv('EX_DB_USERNAME')
+    EX_DB_PASSWORD: str = os.getenv('EX_DB_PASSWORD')
+    EX_DB_HOST: str = os.getenv('EX_DB_HOST')
+    EX_DB_NAME: str = os.getenv('EX_DB_NAME')
+    
+    # Whatsapp access token 
+    WHATSAPP_TOKEN: str = os.getenv('WHATSAPP_TOKEN')
+    
+    # ChatGPT secret
+    CHATGPT_SECRET: str = os.getenv('CHATGPT_API_SECRET')
+    
     # JWT 
     JWT_SECRET: str = os.getenv('JWT_SECRET')
     JWT_ALGORITHM: str = os.getenv('JWT_ALGORITHM')

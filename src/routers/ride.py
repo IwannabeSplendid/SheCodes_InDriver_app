@@ -3,8 +3,13 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from src.database import get_db
-from models import CreateRideRequest, CreateRideResponse, AssignDriverRequest, AssignDriverResponse, StartRideRequest, StartRideResponse, ScheduleRideRequest
-from src.services import create_ride, assign_driver, start_ride, stop_ride, schedule_ride
+from models import (CreateRideRequest, CreateRideResponse, AssignDriverRequest,
+                    AssignDriverResponse, StartRideRequest, StartRideResponse, ScheduleRideRequest,
+                    ShareRideRequest, VoiceBookRequest)
+
+from src.services import create_ride, assign_driver, start_ride, stop_ride, schedule_ride, share_ride_info
+from src.services.chatGPT import translate_voice_message
+
 from src.services.security import oauth2_scheme
 
 
@@ -30,7 +35,6 @@ async def book_ride(request: CreateRideRequest, db: Session = Depends(get_db), c
         status=response['status'],
     )
 
-
 @ride_router.post("/assign_driver", response_model=AssignDriverResponse)
 async def assign_driver_to_ride(request: AssignDriverRequest, db: Session = Depends(get_db)):
     response = await assign_driver(data=request, db=db)
@@ -55,3 +59,39 @@ async def schedule_the_ride(request: ScheduleRideRequest, db: Session = Depends(
     response = await schedule_ride(data=request, db=db,current_user=current_user)
     return response
 
+
+# Share ride info
+@ride_router.post("/share_ride")
+async def assign_driver_to_ride(request: ShareRideRequest, db: Session = Depends(get_db), current_user: str = Depends(oauth2_scheme)):
+    response = await share_ride_info(data=request, current_user=current_user)
+    return JSONResponse(response)
+
+
+# Voice assistant
+@ride_router.post("/voice_book_ride", response_model=CreateRideResponse)
+async def voice_book_ride(voice_message: VoiceBookRequest, db: Session = Depends(get_db), current_user: str = Depends(oauth2_scheme)):
+    reply = await translate_voice_message(voice_message)
+    
+    if reply['scheduled'] == True:
+        request = ScheduleRideRequest(
+            pick_up_location=reply['pick_up_location'],
+            destination=reply['destination'],
+            pick_dates_with_time=reply['datetime'],
+        )
+        response = await schedule_ride(data=request, db=db, current_user=current_user)
+    else:
+        request = CreateRideRequest(
+            pick_up_location=reply["pick_up_location"],
+            destination=reply["destination"]
+        )
+        response = await create_ride(data=request, db=db, current_user=current_user)
+    
+    return CreateRideResponse(
+        ride_id=response['id'],
+        client_id=response['client_id'],
+        driver_id=response['driver_id'],
+        pick_up_location=reply['pick_up_location'],
+        destination=reply['pick_up_location'],
+        created_time=response['created_time'],
+        status=response['status'],
+    )

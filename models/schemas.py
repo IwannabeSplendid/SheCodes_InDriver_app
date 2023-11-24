@@ -158,11 +158,10 @@ class ScheduleRideRequest(BaseModel):
     destination: Location
     pick_dates_with_time: list[datetime]
 
-# Drivers
-# class GetDriverRequest(BaseModel):
-#     first_name: str
-#     last_name: str
-#     email: EmailStr
-#     password: str
-#     phone_number: str
-#     car: dict
+class VoiceBookRequest(BaseModel):
+    voice_message: str
+
+# Share ride
+class ShareRideRequest(BaseModel):
+    ride_id: int
+    phone: str

@@ -74,7 +74,7 @@ async def assign_driver(data, db, scheduled=False, scheduled_ride_id=None, sched
         driver.is_available_now = False
     
     ride.start_time = ride.pick_up_time + timedelta(minutes=random.randint(1, 5)) 
-    ride.end_time = _create_schedule({'driver_id': driver.id, 'date': ride.start_time.date(), 'start_time': ride.start_time}, db)
+    ride.end_time = _create_schedule({'driver_id': driver.id, 'date': ride.start_time.date(), 'start_time': ride.start_time, 'ride_id': ride.id}, db)
     
     db.commit()
     db.refresh(ride)
@@ -209,6 +209,7 @@ def _create_schedule(data, db):
     schedule_entry = ScheduleModel(
         driver_id=driver.id,
         date=data['date'],
+        ride_id = data['ride_id'],
         start_time=data['start_time'].time(),
         end_time=end_datetime.time(),
     )

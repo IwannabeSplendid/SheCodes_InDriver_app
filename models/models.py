@@ -24,11 +24,13 @@ class ScheduleModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     driver_id = Column(Integer, ForeignKey('drivers.id'))
+    ride_id = Column(Integer, ForeignKey('rides.id'))
     date = Column(Date)
     start_time = Column(Time)
     end_time = Column(Time)
     
     driver = relationship("DriverModel", back_populates="schedules")
+    ride = relationship("RideModel", back_populates="schedule")
 
 
 class DriverModel(Base):
@@ -78,6 +80,7 @@ class RideStatusEnum(PythonEnum):
     STARTED = "started"
     COMPLETED = "completed"
     ORDERED = "ordered"
+    CANCELLED = "cancelled"
 
 
 class RideModel(Base):
@@ -98,6 +101,7 @@ class RideModel(Base):
     driver = relationship("DriverModel", uselist=True, back_populates="rides")
     pick_up_location_rel = relationship("LocationModel", back_populates="ride_pick_up", foreign_keys=[pick_up_location])
     destination_rel = relationship("LocationModel", back_populates="ride_destination", foreign_keys=[destination])
+    schedule = relationship("ScheduleModel", uselist=False, back_populates="ride")
 
     def to_dict(self):
         return {

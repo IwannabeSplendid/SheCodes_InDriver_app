@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from typing import Generator
 from .settings import get_settings
@@ -11,7 +11,7 @@ engine = create_engine(
     pool_pre_ping=True,
     pool_recycle=300,
     pool_size=10,
-    max_overflow=0
+    max_overflow=0,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

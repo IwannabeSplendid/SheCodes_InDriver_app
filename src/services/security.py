@@ -1,4 +1,4 @@
-import jwt
+from jose import jwt
 from fastapi import Depends
 from datetime import timedelta, datetime
 from passlib.context import CryptContext
