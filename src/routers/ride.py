@@ -65,7 +65,7 @@ async def voice_book_ride(text_message: VoiceBookRequest, db = Depends(get_supab
     reply = await translate_voice_message(text_message)
     
     reply = json.loads(reply)
-    print(reply)
+
     if reply['scheduled'] == True:
         request = ScheduleRideRequest(
             pick_up_location=reply['pick_up_location'],
