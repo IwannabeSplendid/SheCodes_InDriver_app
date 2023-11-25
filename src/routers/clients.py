@@ -1,8 +1,7 @@
 from fastapi import APIRouter, status, Depends, Request
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
 
-from src.database import get_local_db, get_supabase_db
+from src.database import get_supabase_db
 from models import CreateClientRequest, ClientResponse
 from src.services import create_client_account, get_all_rides_history, get_completed_rides_history, get_ride_history
 from src.services.security import oauth2_scheme, get_current_client

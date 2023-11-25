@@ -1,6 +1,6 @@
-from fastapi import APIRouter, status, Depends, Request
+import json
+from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
 
 from src.database import get_supabase_db
 from models import (CreateRideRequest, CreateRideResponse, AssignDriverRequest,
@@ -69,8 +69,10 @@ async def share_ride(request: ShareRideRequest, current_user: str = Depends(oaut
 
 # Voice assistant
 @ride_router.post("/voice_book_ride", response_model=CreateRideResponse)
-async def voice_book_ride(voice_message: VoiceBookRequest, db = Depends(get_supabase_db), current_user: str = Depends(oauth2_scheme)):
-    reply = await translate_voice_message(voice_message)
+async def voice_book_ride(text_message: VoiceBookRequest, db = Depends(get_supabase_db), current_user: str = Depends(oauth2_scheme)):
+    reply = await translate_voice_message(text_message)
+    
+    reply = json.loads(reply)
     
     if reply['scheduled'] == True:
         request = ScheduleRideRequest(
