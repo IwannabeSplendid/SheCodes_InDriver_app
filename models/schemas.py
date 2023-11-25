@@ -39,11 +39,17 @@ class TokenResponse(BaseModel):
 class CreateRideRequest(BaseModel):
     pick_up_location: str
     destination: str
+    car_type: str
+    notes: Optional[str]
+    is_inclusive: Optional[bool]
     
     def to_dict(self):
         return {
             'pick_up_location': self.pick_up_location,
             'destination': self.destination,
+            'car_type': self.car_type,
+            'notes': self.notes,
+            'is_inclusive': self.is_inclusive,
         }
 
     def to_json(self):
@@ -56,6 +62,7 @@ class CreateRideResponse(BaseModel):
     pick_up_location: str
     destination: str
     created_time: datetime
+    notes: Optional[str]
     status: str
     
     def to_dict(self):
@@ -63,9 +70,11 @@ class CreateRideResponse(BaseModel):
             'ride_id': self.ride_id,
             'client_id': self.client_id,
             'driver_id': self.driver_id,
+            'car_type': 'car_type',
             'pick_up_location': self.pick_up_location,
             'destination': self.destination,
             'created_time': self.created_time.isoformat(),
+            'notes': self.notes,
             'status': self.status,
         }
     
@@ -136,10 +145,17 @@ class StartRideResponse(BaseModel):
     def to_json(self):
         return json.dumps(self.to_dict())
 
+class StopRideRequest(BaseModel):
+    ride_id: int
+    rating: int
+
 class ScheduleRideRequest(BaseModel):
     pick_up_location: str
     destination: str
     pick_dates_with_time: list[datetime]
+    car_type: str
+    notes: Optional[str]
+    is_inclusive: bool
 
 class VoiceBookRequest(BaseModel):
     voice_message: str

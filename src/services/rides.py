@@ -165,12 +165,14 @@ from models import RideModel, DriverModel, ScheduleModel, RideStatusEnum
 # Supabase DB
 async def create_ride(data, db, current_user):
     client_id = get_current_client(current_user)['id']
-        
     new_ride = {
         'client_id': client_id,
         'driver_id': None,
         'pick_up_location': data.pick_up_location,
         'destination': data.destination,
+        'car_type': data.car_type,
+        'notes': data.notes,
+        'is_inclusive': data.is_inclusive,
         'status': "searching",
     }
 
@@ -194,8 +196,15 @@ async def assign_driver(data, db, scheduled=False, scheduled_ride_id = None, sch
     
     if scheduled:
         driver = driver
-    else:
-        driver = db.table('drivers').select('*').eq('is_available_now', True).limit(1).execute().data
+    else:        
+        if ride['is_inclusive']:
+            cars = db.table('cars').select('id').eq('car_type', ride['car_type']).eq('is_inclusive', True).execute().data
+        else:
+            cars = db.table('cars').select('id').eq('car_type', ride['car_type']).execute().data
+        
+        cars_id = [car['id'] for car in cars]
+        
+        driver = db.table('drivers').select('*').eq('is_available_now', True).in_('car_id', cars_id).limit(1).execute().data
         
         if len(driver) == 0:
             raise HTTPException(status_code=404, detail="No available driver.")
@@ -225,10 +234,12 @@ async def assign_driver(data, db, scheduled=False, scheduled_ride_id = None, sch
             "plate_number": car['plate_number'],
             "year": car['year'],
             "is_inclusive": car['is_inclusive'],
+            "car_type": car['car_type'],
         },
         "pick_up_location": ride['pick_up_location'],
         "destination": ride['destination'],
         "pick_up_time": ride['pick_up_time'],
+        "notes": ride['notes'],
         "status": ride['status'],
     }
     return ride_info
@@ -258,12 +269,14 @@ async def start_ride(data, db):
             "plate_number": car['plate_number'],
             "year": car['year'],
             "is_inclusive": car['is_inclusive'],
+            "car_type": car['car_type'],
         },
         "pick_up_location": ride['pick_up_location'],
         "destination": ride['destination'],
         "pick_up_time": ride['pick_up_time'],
         'start_time': ride['start_time'],
         'end_time': ride['end_time'],
+        "notes": ride['notes'],
         "status": ride['status'],
     }
     return ride_info
@@ -278,8 +291,39 @@ async def stop_ride(data, db):
         raise HTTPException(status_code=422, detail="Ride is not started.")
     
     db.table('rides').update({"status": "completed"}).eq('id', ride['id']).execute()
-    db.table('drivers').update({"is_available_now": True}).eq('id', ride['driver_id']).execute()
+    driver = db.table('drivers').update({"is_available_now": True}).eq('id', ride['driver_id']).execute().data[0]
+    d_rating = driver['rating']
+    d_rating_count = float(driver['n_ratings'])
+    d_rating = (d_rating * d_rating_count + data.rating) / (d_rating_count + 1)
+    db.table('drivers').update({"rating": d_rating, "n_ratings": int(d_rating_count + 1)}).eq('id', ride['driver_id']).execute()
     db.table('schedules').delete().eq('ride_id', ride['id']).execute()
+    
+    car = db.table('cars').select('*').eq('driver_id', driver['id']).limit(1).execute().data[0]
+    
+    ride_info = {
+        "driver_first_name": driver['first_name'],
+        "driver_last_name": driver['last_name'],
+        "driver_license_number":  driver['license_number'],
+        "driver_contact_number" : driver['contact_number'],
+        "driver_rating": driver['rating'],
+        "driver_n_rating": driver['n_ratings'],
+        "driver_car": {
+            "model": car['model'],
+            "color": car['color'],
+            "plate_number": car['plate_number'],
+            "year": car['year'],
+            "is_inclusive": car['is_inclusive'],
+            "car_type": car['car_type'],
+        },
+        "pick_up_location": ride['pick_up_location'],
+        "destination": ride['destination'],
+        "pick_up_time": ride['pick_up_time'],
+        'start_time': ride['start_time'],
+        'end_time': ride['end_time'],
+        'notes': ride['notes'],
+        "status": ride['status'],
+    }
+    return ride_info
 
 async def schedule_ride(data, db, current_user):
     client_id = get_current_client(current_user)['id']
@@ -293,7 +337,7 @@ async def schedule_ride(data, db, current_user):
             raise HTTPException(status_code=404, detail="One of the rides is already scheduled.")
         
         schedules_at_the_time = db.table('schedules').select('*').eq('date', pick_time.date()).gte('start_time', pick_time.time()).lte('end_time', pick_time.time()).execute().data
-        print(schedules_at_the_time)
+
         driver_ids_in_schedules = [schedule['driver_id'] for schedule in schedules_at_the_time]
         available_drivers = db.table('drivers').select('*').not_.in_('id', driver_ids_in_schedules).execute().data
 
