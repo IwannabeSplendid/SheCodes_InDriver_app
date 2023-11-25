@@ -1,8 +1,6 @@
 import requests
 
-from .security import get_current_client
 from src.settings import get_settings
-from models import RideModel, DriverModel, ScheduleModel, LocationModel, RideStatusEnum
 
 
 settings = get_settings()

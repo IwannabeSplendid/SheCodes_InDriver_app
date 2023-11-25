@@ -1,11 +1,19 @@
-from sqlalchemy import URL, create_engine
+import os
+from supabase import create_client, Client
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from typing import Generator
+
+
 from .settings import get_settings
 
 
 settings = get_settings()
 
+# Supabase db
+supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+
+# Local db
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,
@@ -18,9 +26,12 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-def get_db() -> Generator:
+def get_local_db() -> Generator:
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+def get_supabase_db():
+    return supabase

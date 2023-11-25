@@ -1,6 +1,5 @@
 import uvicorn
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 from starlette.middleware.authentication import AuthenticationMiddleware
 
 from src.routers import client_router, auth_router, user_router, ride_router

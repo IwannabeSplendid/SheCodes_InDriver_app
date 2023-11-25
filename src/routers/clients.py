@@ -2,8 +2,8 @@ from fastapi import APIRouter, status, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from src.database import get_db
-from models import CreateClientRequest, ClientResponse, RideModel
+from src.database import get_local_db, get_supabase_db
+from models import CreateClientRequest, ClientResponse
 from src.services import create_client_account, get_all_rides_history, get_completed_rides_history, get_ride_history
 from src.services.security import oauth2_scheme, get_current_client
 
@@ -24,7 +24,7 @@ client_router = APIRouter(
 
 
 @user_router.post('', status_code=status.HTTP_201_CREATED)
-async def create_client(data: CreateClientRequest, db: Session = Depends(get_db)):
+async def create_client(data: CreateClientRequest, db = Depends(get_supabase_db)):
     await create_client_account(data=data, db=db)
     payload = {"message": "Client account has been succesfully created."}
     return JSONResponse(content=payload)
@@ -36,21 +36,21 @@ def get_client_detail(request: Request):
 
 
 @client_router.get('/rides', status_code=status.HTTP_200_OK)
-async def get_rides_history(request: Request, db: Session = Depends(get_db), current_user: str = Depends(oauth2_scheme)):
+async def get_rides_history(request: Request, db = Depends(get_supabase_db), current_user: str = Depends(oauth2_scheme)):
     client = get_current_client(current_user)
     response = await get_all_rides_history(data=client, db=db)
     return response
 
 
 @client_router.get('/rides/completed', status_code=status.HTTP_200_OK)
-async def get_completed_rides(request: Request, db: Session = Depends(get_db), current_user: str = Depends(oauth2_scheme)):
+async def get_completed_rides(request: Request, db = Depends(get_supabase_db), current_user: str = Depends(oauth2_scheme)):
     client = get_current_client(current_user)
     response = await get_completed_rides_history(data=client, db=db)
     return response
 
 
 @client_router.get('/rides/{ride_id}', status_code=status.HTTP_200_OK)
-async def get_the_ride_history(request: Request, ride_id: int, db: Session = Depends(get_db), current_user: str = Depends(oauth2_scheme)):
+async def get_the_ride_history(ride_id: int, db = Depends(get_supabase_db), current_user: str = Depends(oauth2_scheme)):
     client = get_current_client(current_user)
     response = await get_ride_history(data=client, db=db, ride_id=ride_id)  
     return response

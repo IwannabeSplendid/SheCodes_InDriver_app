@@ -1,5 +1,5 @@
 # models.py
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Time, Date, Float, Enum, func
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Time, Date, Enum, func
 from sqlalchemy.orm import relationship
 from enum import Enum as PythonEnum
 
@@ -62,18 +62,6 @@ class CarModel(Base):
     driver = relationship("DriverModel", uselist=False, back_populates="car")
 
 
-class LocationModel(Base):
-    __tablename__ = "locations"
-
-    id = Column(Integer, primary_key=True, index=True)
-    address = Column(String)
-    latitude = Column(Float)
-    longitude = Column(Float)
-
-    ride_pick_up = relationship("RideModel", back_populates="pick_up_location_rel", uselist=False, foreign_keys="RideModel.pick_up_location")
-    ride_destination = relationship("RideModel", back_populates="destination_rel", uselist=False, foreign_keys="RideModel.destination")
-
-
 class RideStatusEnum(PythonEnum):
     SEARCHING = "searching"
     ACCEPTED = "accepted"
@@ -89,8 +77,8 @@ class RideModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     client_id = Column(Integer, ForeignKey("clients.id"))
     driver_id = Column(Integer, ForeignKey("drivers.id"), nullable=True)
-    pick_up_location = Column(String, ForeignKey("locations.id"))
-    destination = Column(String, ForeignKey("locations.id"))
+    pick_up_location = Column(String)
+    destination = Column(String)
     status = Column(Enum(RideStatusEnum), default=RideStatusEnum.SEARCHING)
     created_time = Column(DateTime, default=func.now())
     pick_up_time = Column(DateTime)
@@ -99,8 +87,6 @@ class RideModel(Base):
     
     client = relationship("ClientModel", back_populates="rides")
     driver = relationship("DriverModel", uselist=True, back_populates="rides")
-    pick_up_location_rel = relationship("LocationModel", back_populates="ride_pick_up", foreign_keys=[pick_up_location])
-    destination_rel = relationship("LocationModel", back_populates="ride_destination", foreign_keys=[destination])
     schedule = relationship("ScheduleModel", uselist=False, back_populates="ride")
 
     def to_dict(self):

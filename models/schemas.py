@@ -36,30 +36,14 @@ class TokenResponse(BaseModel):
 
 
 # Ride
-class Location(BaseModel):
-    address: str
-    latitude: float
-    longitude: float
-    
-    def to_dict(self):
-        return {
-            'address': self.address,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-        }
-    
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
-
 class CreateRideRequest(BaseModel):
-    pick_up_location: Location
-    destination: Location
+    pick_up_location: str
+    destination: str
     
     def to_dict(self):
         return {
-            'pick_up_location': self.pick_up_location.to_dict(),
-            'destination': self.destination.to_dict(),
+            'pick_up_location': self.pick_up_location,
+            'destination': self.destination,
         }
 
     def to_json(self):
@@ -86,7 +70,6 @@ class CreateRideResponse(BaseModel):
         }
     
     def to_json(self):
-
         return json.dumps(self.to_dict())
 
 class AssignDriverRequest(BaseModel):
@@ -154,8 +137,8 @@ class StartRideResponse(BaseModel):
         return json.dumps(self.to_dict())
 
 class ScheduleRideRequest(BaseModel):
-    pick_up_location: Location
-    destination: Location
+    pick_up_location: str
+    destination: str
     pick_dates_with_time: list[datetime]
 
 class VoiceBookRequest(BaseModel):

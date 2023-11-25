@@ -19,10 +19,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = f"postgresql+psycopg2://{DB_NAME}:%s@{DB_HOST}:{DB_PORT}/{DB_NAME}" % quote_plus(DB_PASSWORD)
     
     # External Database
-    EX_DB_USERNAME: str = os.getenv('EX_DB_USERNAME')
-    EX_DB_PASSWORD: str = os.getenv('EX_DB_PASSWORD')
-    EX_DB_HOST: str = os.getenv('EX_DB_HOST')
-    EX_DB_NAME: str = os.getenv('EX_DB_NAME')
+    SUPABASE_KEY: str = os.getenv('SUPABASE_KEY')
+    SUPABASE_URL: str = os.getenv('SUPABASE_URL')
     
     # Whatsapp access token 
     WHATSAPP_TOKEN: str = os.getenv('WHATSAPP_TOKEN')

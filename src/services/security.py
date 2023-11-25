@@ -7,7 +7,7 @@ from starlette.authentication import AuthCredentials, UnauthenticatedUser
 
 
 from src.settings import get_settings
-from src.database import get_db
+from src.database import get_supabase_db, get_local_db
 from models import ClientModel
 
 
@@ -41,7 +41,7 @@ def get_token_payload(token):
         return None
     return payload
 
-def get_current_client(token: str = Depends(oauth2_scheme), db = None):
+def get_current_client(token: str = Depends(oauth2_scheme), db = None, local = False):
     payload = get_token_payload(token)
     if not payload or type(payload) is not dict:
         return None
@@ -51,9 +51,13 @@ def get_current_client(token: str = Depends(oauth2_scheme), db = None):
         return None
 
     if not db:
-        db = next(get_db())
-
-    client = db.query(ClientModel).filter(ClientModel.id == client_id).first()
+        db = next(get_local_db()) if local else get_supabase_db()
+    
+    if local:
+        client = db.query(ClientModel).filter(ClientModel.id == client_id).first()
+    else:
+        client = db.table('clients').select('*').eq('id', client_id).limit(1).execute().data[0]
+    
     return client
 
 
