@@ -62,7 +62,7 @@ async def schedule_the_ride(request: ScheduleRideRequest, db = Depends(get_supab
 
 # Share ride info
 @ride_router.post("/share_ride")
-async def assign_driver_to_ride(request: ShareRideRequest, db = Depends(get_supabase_db), current_user: str = Depends(oauth2_scheme)):
+async def share_ride(request: ShareRideRequest, current_user: str = Depends(oauth2_scheme)):
     response = await share_ride_info(data=request, current_user=current_user)
     return JSONResponse(response)
 

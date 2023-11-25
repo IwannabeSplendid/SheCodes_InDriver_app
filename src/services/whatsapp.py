@@ -1,26 +1,48 @@
 import requests
 
 from src.settings import get_settings
-
+from .security import get_current_client
 
 settings = get_settings()
 
 
-def share_ride_info(data, current_user):
+async def share_ride_info(data, current_user):
+    client = get_current_client(current_user)
+
     headers = {
-        'Authorization': 'Bearer {settings.WHATSAPP_TOKEN}',
+        'Authorization': f'Bearer {settings.WHATSAPP_TOKEN}',
         'Content-Type': 'application/json',
     }
 
     json_data = {
         'messaging_product': 'whatsapp',
-        'to': '{data.phone}',
+        'to': f'7{data.phone}',
         'type': 'template',
         'template': {
             'name': 'share_ride',
             'language': {
-                'code': 'en_US',
+                'code': 'en',
             },
+            'components': [
+                { 
+                    "type": "HEADER",
+                    "parameters": [{
+                        "type": "text",
+                        "text": client['first_name'],
+                    }]
+                },
+                {
+                    "type": "button",
+                    "sub_type" : "url",
+                    "index": "0", 
+                    "parameters": [
+                        {
+                            "type": "text",
+                            "text": data.ride_id,
+                        }
+                    ]
+                },
+            ],
         },
     }
 
